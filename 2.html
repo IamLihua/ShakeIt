@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>陀螺仪生日选择器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #3a7bd5 0%, #00d2ff 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            overflow: hidden;
+            touch-action: none;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 24px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 25px;
+        }
+
+        .date-display {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 15px;
+            color: white;
+        }
+
+        .date-label {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 10px;
+        }
+
+        .date-value {
+            font-size: 32px;
+            font-weight: bold;
+            font-family: 'Courier New', monospace;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .date-detail {
+            font-size: 14px;
+            margin-top: 8px;
+            opacity: 0.9;
+        }
+
+        .plane-container {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 1;
+            margin: 20px 0;
+            background: linear-gradient(to bottom, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .grid-lines {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .grid-line-h, .grid-line-v {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        .grid-line-h {
+            width: 100%;
+            height: 1px;
+        }
+
+        .grid-line-v {
+            height: 100%;
+            width: 1px;
+        }
+
+        .axis-labels {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .label {
+            position: absolute;
+            font-size: 10px;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .label-x {
+            bottom: 5px;
+            transform: translateX(-50%);
+        }
+
+        .label-y {
+            left: 5px;
+            transform: translateY(-50%);
+        }
+
+        .slider-thumb {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            z-index: 10;
+            transform: translate(-50%, -50%);
+            transition: box-shadow 0.3s;
+        }
+
+        .slider-thumb::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .slider-thumb.active {
+            box-shadow: 0 0 20px rgba(102, 126, 234, 0.8);
+            animation: pulse-thumb 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse-thumb {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); }
+            50% { transform: translate(-50%, -50%) scale(1.1); }
+        }
+
+        .coordinates {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .coordinate-item {
+            text-align: center;
+            flex: 1;
+        }
+
+        .coordinate-label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .coordinate-value {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            font-family: 'Courier New', monospace;
+        }
+
+        .status {
+            text-align: center;
+            margin: 15px 0;
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 14px;
+            background: #e7f3ff;
+            color: #0066cc;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .button {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .button:active {
+            transform: scale(0.98);
+        }
+
+        .confirm-button {
+            background: linear-gradient(135deg, #56ab2f 0%, #a8e063 100%);
+            color: white;
+        }
+
+        .reset-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .permission-prompt {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .permission-box {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            max-width: 350px;
+        }
+
+        .permission-box h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .permission-box p {
+            margin-bottom: 25px;
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .permission-button {
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #3a7bd5 0%, #00d2ff 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .gyro-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+
+        .success-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 999;
+        }
+
+        .success-overlay.show {
+            display: flex;
+        }
+
+        .success-box {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 350px;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: scale(0.8);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .success-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+
+        .success-box h2 {
+            color: #56ab2f;
+            margin-bottom: 20px;
+        }
+
+        .success-date {
+            font-size: 28px;
+            font-weight: bold;
+            color: #333;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+        }
+
+        .close-button {
+            margin-top: 25px;
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="permission-prompt" id="permissionPrompt">
+        <div class="permission-box">
+            <div class="gyro-icon">🎂</div>
+            <h2>陀螺仪生日选择器</h2>
+            <p>倾斜手机来选择您的出生日期<br>左右倾斜选择年份<br>前后倾斜选择日期</p>
+            <button class="permission-button" id="requestPermission">开始选择</button>
+        </div>
+    </div>
+
+    <div class="success-overlay" id="successOverlay">
+        <div class="success-box">
+            <div class="success-icon">🎉</div>
+            <h2>生日已确认</h2>
+            <div class="success-date" id="successDate"></div>
+            <p id="successDetail"></p>
+            <button class="close-button" id="closeSuccess">关闭</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <h1>选择您的生日</h1>
+        <div class="subtitle">倾斜手机控制滑块</div>
+
+        <div class="date-display">
+            <div class="date-label">当前选择</div>
+            <div class="date-value" id="dateValue">2000-01-01</div>
+            <div class="date-detail" id="dateDetail">星期六</div>
+        </div>
+
+        <div class="plane-container" id="planeContainer">
+            <div class="grid-lines" id="gridLines"></div>
+            <div class="axis-labels" id="axisLabels"></div>
+            <div class="slider-thumb active" id="sliderThumb"></div>
+        </div>
+
+        <div class="coordinates">
+            <div class="coordinate-item">
+                <div class="coordinate-label">年份</div>
+                <div class="coordinate-value" id="yearValue">2000</div>
+            </div>
+            <div class="coordinate-item">
+                <div class="coordinate-label">月份</div>
+                <div class="coordinate-value" id="monthValue">1月</div>
+            </div>
+            <div class="coordinate-item">
+                <div class="coordinate-label">日期</div>
+                <div class="coordinate-value" id="dayValue">1日</div>
+            </div>
+        </div>
+
+        <div class="status" id="status">
+            倾斜手机来选择日期
+        </div>
+
+        <div class="button-group">
+            <button class="confirm-button" id="confirmButton">✓ 确认生日</button>
+            <button class="reset-button" id="resetButton">↺ 重置</button>
+        </div>
+    </div>
+
+    <script>
+        // 全局变量
+        let currentX = 0.5; // 0-1，对应年份
+        let currentY = 0.5; // 0-1，对应一年中的天数
+        let velocityX = 0;
+        let velocityY = 0;
+        let isGyroActive = false;
+        let lastGamma = 0;
+        let lastBeta = 0;
+
+        // 年份范围（最近80年）
+        const currentYear = new Date().getFullYear();
+        const minYear = currentYear - 79;
+        const maxYear = currentYear;
+        const yearRange = maxYear - minYear;
+
+        // 物理参数
+        const friction = 0.93;
+        const sensitivity = 0.0006;
+        const maxVelocity = 0.015;
+
+        // DOM 元素
+        const dateValueEl = document.getElementById('dateValue');
+        const dateDetailEl = document.getElementById('dateDetail');
+        const yearValueEl = document.getElementById('yearValue');
+        const monthValueEl = document.getElementById('monthValue');
+        const dayValueEl = document.getElementById('dayValue');
+        const sliderThumb = document.getElementById('sliderThumb');
+        const statusEl = document.getElementById('status');
+        const planeContainer = document.getElementById('planeContainer');
+        const gridLines = document.getElementById('gridLines');
+        const axisLabels = document.getElementById('axisLabels');
+        const confirmButton = document.getElementById('confirmButton');
+        const resetButton = document.getElementById('resetButton');
+        const permissionPrompt = document.getElementById('permissionPrompt');
+        const requestPermissionBtn = document.getElementById('requestPermission');
+        const successOverlay = document.getElementById('successOverlay');
+        const successDate = document.getElementById('successDate');
+        const successDetail = document.getElementById('successDetail');
+        const closeSuccessBtn = document.getElementById('closeSuccess');
+
+        // 星期名称
+        const weekDays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+        const monthNames = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'];
+
+        // 初始化
+        function init() {
+            createGrid();
+            createAxisLabels();
+            updateDisplay();
+            animate();
+        }
+
+        // 创建网格线
+        function createGrid() {
+            // 创建10条横线
+            for (let i = 0; i <= 10; i++) {
+                const line = document.createElement('div');
+                line.className = 'grid-line-h';
+                line.style.top = (i * 10) + '%';
+                gridLines.appendChild(line);
+            }
+
+            // 创建10条竖线
+            for (let i = 0; i <= 10; i++) {
+                const line = document.createElement('div');
+                line.className = 'grid-line-v';
+                line.style.left = (i * 10) + '%';
+                gridLines.appendChild(line);
+            }
+        }
+
+        // 创建坐标轴标签
+        function createAxisLabels() {
+            // X轴标签（年份） - 显示5个标签
+            for (let i = 0; i <= 4; i++) {
+                const label = document.createElement('div');
+                label.className = 'label label-x';
+                const year = minYear + Math.floor(yearRange * i / 4);
+                label.textContent = year;
+                label.style.left = (i * 25) + '%';
+                axisLabels.appendChild(label);
+            }
+
+            // Y轴标签（月份） - 显示12个月
+            for (let i = 0; i <= 11; i++) {
+                const label = document.createElement('div');
+                label.className = 'label label-y';
+                label.textContent = (i + 1) + '月';
+                label.style.top = (i * 100 / 11) + '%';
+                axisLabels.appendChild(label);
+            }
+        }
+
+        // 将一年中的第N天转换为日期
+        function dayOfYearToDate(year, dayOfYear) {
+            // 确保dayOfYear在有效范围内
+            const isLeapYear = (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
+            const maxDays = isLeapYear ? 366 : 365;
+            dayOfYear = Math.max(1, Math.min(maxDays, Math.round(dayOfYear)));
+
+            const date = new Date(year, 0);
+            date.setDate(dayOfYear);
+            return date;
+        }
+
+        // 获取当前选择的日期
+        function getCurrentDate() {
+            const year = Math.round(minYear + currentX * yearRange);
+            const isLeapYear = (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
+            const maxDays = isLeapYear ? 366 : 365;
+            const dayOfYear = Math.round(1 + currentY * (maxDays - 1));
+            
+            return dayOfYearToDate(year, dayOfYear);
+        }
+
+        // 更新显示
+        function updateDisplay() {
+            const date = getCurrentDate();
+            const year = date.getFullYear();
+            const month = date.getMonth() + 1;
+            const day = date.getDate();
+            const weekDay = weekDays[date.getDay()];
+
+            // 格式化日期
+            const dateString = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            dateValueEl.textContent = dateString;
+            dateDetailEl.textContent = weekDay;
+
+            // 更新坐标值
+            yearValueEl.textContent = year;
+            monthValueEl.textContent = month + '月';
+            dayValueEl.textContent = day + '日';
+
+            // 更新滑块位置
+            sliderThumb.style.left = (currentX * 100) + '%';
+            sliderThumb.style.top = (currentY * 100) + '%';
+        }
+
+        // 请求陀螺仪权限
+        async function requestGyroscopePermission() {
+            try {
+                if (typeof DeviceOrientationEvent !== 'undefined' && 
+                    typeof DeviceOrientationEvent.requestPermission === 'function') {
+                    const permission = await DeviceOrientationEvent.requestPermission();
+                    if (permission === 'granted') {
+                        startGyroscope();
+                    } else {
+                        alert('需要陀螺仪权限才能继续');
+                    }
+                } else {
+                    startGyroscope();
+                }
+            } catch (error) {
+                console.error('请求陀螺仪权限失败:', error);
+                alert('无法访问陀螺仪，请确保使用HTTPS连接或在手机上打开');
+            }
+        }
+
+        // 开始陀螺仪监听
+        function startGyroscope() {
+            permissionPrompt.style.display = 'none';
+            isGyroActive = true;
+            
+            window.addEventListener('deviceorientation', handleOrientation);
+            
+            statusEl.textContent = '倾斜手机来选择您的生日';
+        }
+
+        // 处理设备方向事件
+        function handleOrientation(event) {
+            if (!isGyroActive) return;
+
+            let gamma = event.gamma; // 左右倾斜 (-90 到 90)
+            let beta = event.beta;   // 前后倾斜 (-180 到 180)
+
+            if (gamma === null || beta === null) return;
+
+            lastGamma = gamma;
+            lastBeta = beta;
+
+            // 限制角度范围
+            gamma = Math.max(-45, Math.min(45, gamma));
+            beta = Math.max(-45, Math.min(45, beta));
+
+            // 根据倾斜角度计算加速度
+            const accelerationX = gamma * sensitivity;
+            const accelerationY = beta * sensitivity;
+            
+            // 更新速度（带惯性）
+            velocityX += accelerationX;
+            velocityX = Math.max(-maxVelocity, Math.min(maxVelocity, velocityX));
+
+            velocityY += accelerationY;
+            velocityY = Math.max(-maxVelocity, Math.min(maxVelocity, velocityY));
+        }
+
+        // 动画循环
+        function animate() {
+            // 应用速度到位置
+            currentX += velocityX;
+            currentY += velocityY;
+            
+            // 限制位置在0-1之间，带边界反弹
+            if (currentX < 0) {
+                currentX = 0;
+                velocityX = -velocityX * 0.5;
+            } else if (currentX > 1) {
+                currentX = 1;
+                velocityX = -velocityX * 0.5;
+            }
+            
+            if (currentY < 0) {
+                currentY = 0;
+                velocityY = -velocityY * 0.5;
+            } else if (currentY > 1) {
+                currentY = 1;
+                velocityY = -velocityY * 0.5;
+            }
+            
+            // 应用摩擦力
+            velocityX *= friction;
+            velocityY *= friction;
+
+            updateDisplay();
+            requestAnimationFrame(animate);
+        }
+
+        // 确认生日
+        function confirmBirthday() {
+            const date = getCurrentDate();
+            const year = date.getFullYear();
+            const month = date.getMonth() + 1;
+            const day = date.getDate();
+            const weekDay = weekDays[date.getDay()];
+            const dateString = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+
+            // 计算年龄
+            const today = new Date();
+            let age = today.getFullYear() - year;
+            const monthDiff = today.getMonth() - date.getMonth();
+            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < day)) {
+                age--;
+            }
+
+            successDate.textContent = dateString;
+            successDetail.textContent = `${weekDay} · ${age >= 0 ? age + ' 岁' : '未来日期'}`;
+            successOverlay.classList.add('show');
+
+            // 停止陀螺仪
+            isGyroActive = false;
+        }
+
+        // 重置
+        function reset() {
+            currentX = 0.5;
+            currentY = 0.5;
+            velocityX = 0;
+            velocityY = 0;
+            updateDisplay();
+            
+            if (permissionPrompt.style.display === 'none') {
+                isGyroActive = true;
+                statusEl.textContent = '倾斜手机来选择您的生日';
+            }
+        }
+
+        // 关闭成功提示
+        function closeSuccess() {
+            successOverlay.classList.remove('show');
+            isGyroActive = true;
+        }
+
+        // 事件监听
+        requestPermissionBtn.addEventListener('click', requestGyroscopePermission);
+        confirmButton.addEventListener('click', confirmBirthday);
+        resetButton.addEventListener('click', reset);
+        closeSuccessBtn.addEventListener('click', closeSuccess);
+
+        // 页面加载时初始化
+        init();
+
+        // 防止页面滚动
+        document.body.addEventListener('touchmove', function(e) {
+            e.preventDefault();
+        }, { passive: false });
+    </script>
+</body>
+</html>

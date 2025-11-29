@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>陀螺仪滑块手机号</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            overflow: hidden;
+            touch-action: none;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 24px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 30px;
+        }
+
+        .phone-display {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px 20px;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(79, 172, 254, 0.3);
+        }
+
+        .phone-label {
+            color: white;
+            font-size: 14px;
+            margin-bottom: 15px;
+            opacity: 0.9;
+        }
+
+        .phone-number {
+            font-size: 28px;
+            font-weight: bold;
+            color: white;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 1px;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            user-select: none;
+            margin-bottom: 10px;
+            word-break: break-all;
+            overflow-wrap: break-word;
+        }
+
+        .phone-formatted {
+            font-size: 16px;
+            color: white;
+            opacity: 0.9;
+            font-family: 'Courier New', monospace;
+            word-spacing: 2px;
+        }
+
+        .slider-section {
+            margin: 40px 0;
+        }
+
+        .slider-label {
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+
+        .slider-container {
+            position: relative;
+            margin: 30px 0;
+        }
+
+        .slider-track {
+            width: 100%;
+            height: 60px;
+            background: linear-gradient(to right, #f0f0f0 0%, #e0e0e0 50%, #f0f0f0 100%);
+            border-radius: 30px;
+            position: relative;
+            overflow: visible;
+            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .scale-marks {
+            position: absolute;
+            top: -25px;
+            left: 0;
+            width: 100%;
+            height: 20px;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 10px;
+        }
+
+        .scale-mark {
+            font-size: 10px;
+            color: #999;
+            font-weight: 500;
+        }
+
+        .slider-thumb {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            border-radius: 50%;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            transition: box-shadow 0.3s;
+            z-index: 10;
+            cursor: grab;
+        }
+
+        .slider-thumb:active {
+            cursor: grabbing;
+        }
+
+        .slider-thumb::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 30px;
+            height: 30px;
+            background: white;
+            border-radius: 50%;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .slider-thumb::after {
+            content: '📱';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 16px;
+        }
+
+        .slider-thumb.active {
+            animation: pulse-slider 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse-slider {
+            0%, 100% { 
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            }
+            50% { 
+                box-shadow: 0 0 20px rgba(79, 172, 254, 0.8);
+            }
+        }
+
+        .progress-indicator {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            margin-top: 20px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 30px 0;
+        }
+
+        .stat-card {
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            font-family: 'Courier New', monospace;
+        }
+
+        .stat-value.percentage {
+            color: #4facfe;
+        }
+
+        .instruction {
+            text-align: center;
+            margin: 25px 0;
+            padding: 20px;
+            background: #fff3cd;
+            border-radius: 10px;
+            border-left: 4px solid #ffc107;
+        }
+
+        .instruction-title {
+            font-weight: bold;
+            color: #856404;
+            margin-bottom: 10px;
+            font-size: 15px;
+        }
+
+        .instruction-text {
+            color: #856404;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .status {
+            text-align: center;
+            margin: 15px 0;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 14px;
+            background: #e7f3ff;
+            color: #0066cc;
+            font-weight: 500;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .button {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .button:active {
+            transform: scale(0.98);
+        }
+
+        .confirm-button {
+            background: linear-gradient(135deg, #56ab2f 0%, #a8e063 100%);
+            color: white;
+        }
+
+        .random-button {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        .reset-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .permission-prompt {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .permission-box {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            max-width: 350px;
+        }
+
+        .permission-box h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .permission-box p {
+            margin-bottom: 25px;
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .permission-button {
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .gyro-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+
+        .success-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 999;
+        }
+
+        .success-overlay.show {
+            display: flex;
+        }
+
+        .success-box {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 350px;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: scale(0.8);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .success-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+
+        .success-box h2 {
+            color: #56ab2f;
+            margin-bottom: 20px;
+        }
+
+        .success-phone {
+            font-size: 32px;
+            font-weight: bold;
+            color: #333;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 2px;
+        }
+
+        .success-details {
+            color: #666;
+            font-size: 14px;
+            margin-top: 15px;
+        }
+
+        .close-button {
+            margin-top: 25px;
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .range-info {
+            text-align: center;
+            margin-top: 15px;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .range-numbers {
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            color: #4facfe;
+        }
+    </style>
+</head>
+<body>
+    <div class="permission-prompt" id="permissionPrompt">
+        <div class="permission-box">
+            <div class="gyro-icon">📱</div>
+            <h2>陀螺仪滑块选号</h2>
+            <p>倾斜手机左右来滑动选择<br>在100亿个号码中找到属于你的那一个</p>
+            <button class="permission-button" id="requestPermission">开始选择</button>
+        </div>
+    </div>
+
+    <div class="success-overlay" id="successOverlay">
+        <div class="success-box">
+            <div class="success-icon">🎉</div>
+            <h2>号码已确认</h2>
+            <div class="success-phone" id="successPhone"></div>
+            <div class="success-details">
+                <p>这是 100 亿个可能中的唯一选择</p>
+                <p id="successPosition"></p>
+            </div>
+            <button class="close-button" id="closeSuccess">关闭</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <h1>滑块选择手机号</h1>
+        <div class="subtitle">倾斜手机控制滑块位置</div>
+
+        <div class="phone-display">
+            <div class="phone-label">当前号码</div>
+            <div class="phone-number" id="phoneNumber">13000000000</div>
+            <div class="phone-formatted" id="phoneFormatted">130-0000-0000</div>
+        </div>
+
+        <div class="slider-section">
+            <div class="slider-label">号码选择滑块</div>
+            
+            <div class="scale-marks">
+                <span class="scale-mark">130-0000-0000</span>
+                <span class="scale-mark">145-0000-0000</span>
+                <span class="scale-mark">199-9999-9999</span>
+            </div>
+
+            <div class="slider-container">
+                <div class="slider-track">
+                    <div class="slider-thumb active" id="sliderThumb"></div>
+                </div>
+            </div>
+
+            <div class="progress-indicator">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+
+            <div class="range-info">
+                范围：<span class="range-numbers">13000000000</span> 至 <span class="range-numbers">19999999999</span>
+                <br>共 <span class="range-numbers">70亿</span> 个号码
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">滑块位置</div>
+                <div class="stat-value percentage" id="positionPercent">0.0%</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">号码序号</div>
+                <div class="stat-value" id="phoneIndex">0</div>
+            </div>
+        </div>
+
+        <div class="instruction">
+            <div class="instruction-title">📖 操作说明</div>
+            <div class="instruction-text">
+                ↔️ 左右倾斜手机控制滑块移动<br>
+                🎯 滑块具有惯性和摩擦力效果<br>
+                📱 在70亿个号码中找到你的幸运号码
+            </div>
+        </div>
+
+        <div class="status" id="status">
+            倾斜手机开始滑动
+        </div>
+
+        <div class="button-group">
+            <button class="confirm-button" id="confirmButton">✓ 确认</button>
+            <button class="random-button" id="randomButton">🎲 随机</button>
+        </div>
+        <div class="button-group">
+            <button class="reset-button" id="resetButton">↺ 重置到中点</button>
+        </div>
+    </div>
+
+    <script>
+        // 全局变量
+        let currentPosition = 0.5; // 0-1之间的位置
+        let velocity = 0;
+        let isGyroActive = false;
+        let lastGamma = 0;
+
+        // 号码范围（13开头到19开头的号码）
+        const MIN_PHONE = 13000000000;
+        const MAX_PHONE = 19999999999;
+        const PHONE_RANGE = MAX_PHONE - MIN_PHONE;
+
+        // 物理参数
+        const friction = 0.95;
+        const sensitivity = 0.0008;
+        const maxVelocity = 0.02;
+
+        // DOM 元素
+        const phoneNumberEl = document.getElementById('phoneNumber');
+        const phoneFormattedEl = document.getElementById('phoneFormatted');
+        const sliderThumb = document.getElementById('sliderThumb');
+        const progressFill = document.getElementById('progressFill');
+        const positionPercentEl = document.getElementById('positionPercent');
+        const phoneIndexEl = document.getElementById('phoneIndex');
+        const statusEl = document.getElementById('status');
+        const confirmButton = document.getElementById('confirmButton');
+        const randomButton = document.getElementById('randomButton');
+        const resetButton = document.getElementById('resetButton');
+        const permissionPrompt = document.getElementById('permissionPrompt');
+        const requestPermissionBtn = document.getElementById('requestPermission');
+        const successOverlay = document.getElementById('successOverlay');
+        const successPhone = document.getElementById('successPhone');
+        const successPosition = document.getElementById('successPosition');
+        const closeSuccessBtn = document.getElementById('closeSuccess');
+
+        // 初始化
+        function init() {
+            updateDisplay();
+            animate();
+        }
+
+        // 根据位置计算手机号
+        function positionToPhone(position) {
+            const phone = Math.floor(MIN_PHONE + position * PHONE_RANGE);
+            return Math.max(MIN_PHONE, Math.min(MAX_PHONE, phone));
+        }
+
+        // 格式化手机号
+        function formatPhone(phone) {
+            const phoneStr = phone.toString();
+            return phoneStr.substring(0, 3) + '-' + 
+                   phoneStr.substring(3, 7) + '-' + 
+                   phoneStr.substring(7, 11);
+        }
+
+        // 更新显示
+        function updateDisplay() {
+            const phone = positionToPhone(currentPosition);
+            const phoneStr = phone.toString();
+            const formatted = formatPhone(phone);
+            const percentage = (currentPosition * 100).toFixed(1);
+            const index = Math.floor(currentPosition * PHONE_RANGE);
+
+            phoneNumberEl.textContent = phoneStr;
+            phoneFormattedEl.textContent = formatted;
+            sliderThumb.style.left = (currentPosition * 100) + '%';
+            progressFill.style.width = (currentPosition * 100) + '%';
+            positionPercentEl.textContent = percentage + '%';
+            
+            // 格式化序号（添加千分位分隔符）
+            phoneIndexEl.textContent = index.toLocaleString();
+        }
+
+        // 请求陀螺仪权限
+        async function requestGyroscopePermission() {
+            try {
+                if (typeof DeviceOrientationEvent !== 'undefined' && 
+                    typeof DeviceOrientationEvent.requestPermission === 'function') {
+                    const permission = await DeviceOrientationEvent.requestPermission();
+                    if (permission === 'granted') {
+                        startGyroscope();
+                    } else {
+                        alert('需要陀螺仪权限才能继续');
+                    }
+                } else {
+                    startGyroscope();
+                }
+            } catch (error) {
+                console.error('请求陀螺仪权限失败:', error);
+                alert('无法访问陀螺仪，请确保使用HTTPS连接或在手机上打开');
+            }
+        }
+
+        // 开始陀螺仪监听
+        function startGyroscope() {
+            permissionPrompt.style.display = 'none';
+            isGyroActive = true;
+            
+            window.addEventListener('deviceorientation', handleOrientation);
+            
+            statusEl.textContent = '左右倾斜手机来选择你的号码';
+        }
+
+        // 处理设备方向事件
+        function handleOrientation(event) {
+            if (!isGyroActive) return;
+
+            let gamma = event.gamma;
+
+            if (gamma === null) return;
+
+            lastGamma = gamma;
+
+            // 限制角度范围
+            gamma = Math.max(-45, Math.min(45, gamma));
+
+            // 根据倾斜角度计算加速度
+            const acceleration = gamma * sensitivity;
+            
+            // 更新速度（带惯性）
+            velocity += acceleration;
+            velocity = Math.max(-maxVelocity, Math.min(maxVelocity, velocity));
+        }
+
+        // 动画循环
+        function animate() {
+            if (isGyroActive) {
+                // 应用速度到位置
+                currentPosition += velocity;
+                
+                // 限制位置在0-1之间
+                if (currentPosition < 0) {
+                    currentPosition = 0;
+                    velocity = -velocity * 0.5;
+                } else if (currentPosition > 1) {
+                    currentPosition = 1;
+                    velocity = -velocity * 0.5;
+                }
+                
+                // 应用摩擦力
+                velocity *= friction;
+            }
+
+            updateDisplay();
+            requestAnimationFrame(animate);
+        }
+
+        // 确认号码
+        function confirmPhone() {
+            const phone = positionToPhone(currentPosition);
+            const formatted = formatPhone(phone);
+            const percentage = (currentPosition * 100).toFixed(2);
+            const index = Math.floor(currentPosition * PHONE_RANGE);
+
+            successPhone.textContent = phone.toString();
+            successPosition.innerHTML = `位置：${percentage}% | 序号：${index.toLocaleString()}`;
+            successOverlay.classList.add('show');
+            isGyroActive = false;
+        }
+
+        // 随机号码
+        function randomPhone() {
+            currentPosition = Math.random();
+            velocity = 0;
+            updateDisplay();
+            
+            const phone = positionToPhone(currentPosition);
+            statusEl.textContent = '随机生成：' + formatPhone(phone);
+            
+            // 3秒后恢复状态提示
+            setTimeout(() => {
+                if (isGyroActive) {
+                    statusEl.textContent = '左右倾斜手机来选择你的号码';
+                }
+            }, 3000);
+        }
+
+        // 重置到中点
+        function reset() {
+            currentPosition = 0.5;
+            velocity = 0;
+            updateDisplay();
+            
+            if (permissionPrompt.style.display === 'none') {
+                isGyroActive = true;
+                statusEl.textContent = '左右倾斜手机来选择你的号码';
+            }
+        }
+
+        // 关闭成功提示
+        function closeSuccess() {
+            successOverlay.classList.remove('show');
+            isGyroActive = true;
+        }
+
+        // 事件监听
+        requestPermissionBtn.addEventListener('click', requestGyroscopePermission);
+        confirmButton.addEventListener('click', confirmPhone);
+        randomButton.addEventListener('click', randomPhone);
+        resetButton.addEventListener('click', reset);
+        closeSuccessBtn.addEventListener('click', closeSuccess);
+
+        // 页面加载时初始化
+        init();
+
+        // 防止页面滚动
+        document.body.addEventListener('touchmove', function(e) {
+            e.preventDefault();
+        }, { passive: false });
+    </script>
+</body>
+</html>

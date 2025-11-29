@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>陀螺仪应用导航</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #4facfe 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 50px;
+            color: white;
+            animation: fadeInDown 0.6s ease;
+        }
+
+        .header h1 {
+            font-size: 48px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            font-size: 18px;
+            opacity: 0.95;
+            font-weight: 400;
+        }
+
+        .apps-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .app-card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+            position: relative;
+            overflow: hidden;
+            animation: fadeInUp 0.6s ease;
+        }
+
+        .app-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, #667eea, #764ba2, #4facfe);
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.3s ease;
+        }
+
+        .app-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.4);
+        }
+
+        .app-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .app-card:nth-child(1) {
+            animation-delay: 0.1s;
+        }
+
+        .app-card:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .app-card:nth-child(3) {
+            animation-delay: 0.3s;
+        }
+
+        .app-icon {
+            font-size: 64px;
+            text-align: center;
+            margin-bottom: 20px;
+            display: block;
+        }
+
+        .app-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .app-description {
+            font-size: 15px;
+            color: #64748b;
+            line-height: 1.6;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .app-features {
+            list-style: none;
+            padding: 0;
+            margin: 20px 0;
+        }
+
+        .app-features li {
+            font-size: 14px;
+            color: #475569;
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+        }
+
+        .app-features li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: #22c55e;
+            font-weight: bold;
+        }
+
+        .app-link {
+            display: inline-block;
+            width: 100%;
+            text-align: center;
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .app-card:hover .app-link {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .app-card:nth-child(1) .app-link {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .app-card:nth-child(2) .app-link {
+            background: linear-gradient(135deg, #3a7bd5 0%, #00d2ff 100%);
+        }
+
+        .app-card:nth-child(3) .app-link {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 50px;
+            color: white;
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 36px;
+            }
+
+            .header p {
+                font-size: 16px;
+            }
+
+            .apps-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .app-card {
+                padding: 30px 20px;
+            }
+
+            .app-icon {
+                font-size: 48px;
+            }
+
+            .app-title {
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📱 陀螺仪应用集合</h1>
+            <p>通过倾斜手机体验有趣的交互应用</p>
+        </div>
+
+        <div class="apps-grid">
+            <a href="1.html" class="app-card">
+                <div class="app-icon">🤖</div>
+                <h2 class="app-title">陀螺仪验证码</h2>
+                <p class="app-description">通过倾斜手机左右移动滑块进行人机验证，保护您的账户安全</p>
+                <ul class="app-features">
+                    <li>物理引擎驱动的滑块</li>
+                    <li>实时陀螺仪检测</li>
+                    <li>流畅的惯性效果</li>
+                    <li>目标位置验证</li>
+                </ul>
+                <div class="app-link">开始验证 →</div>
+            </a>
+
+            <a href="2.html" class="app-card">
+                <div class="app-icon">🎂</div>
+                <h2 class="app-title">陀螺仪生日选择器</h2>
+                <p class="app-description">通过倾斜手机在二维平面上选择您的出生日期，体验独特的交互方式</p>
+                <ul class="app-features">
+                    <li>二维坐标选择</li>
+                    <li>年份和日期同步选择</li>
+                    <li>实时日期显示</li>
+                    <li>年龄自动计算</li>
+                </ul>
+                <div class="app-link">选择生日 →</div>
+            </a>
+
+            <a href="3.html" class="app-card">
+                <div class="app-icon">📱</div>
+                <h2 class="app-title">陀螺仪滑块选号</h2>
+                <p class="app-description">在70亿个手机号码中，通过倾斜手机找到属于您的幸运号码</p>
+                <ul class="app-features">
+                    <li>70亿号码范围</li>
+                    <li>实时号码显示</li>
+                    <li>位置百分比统计</li>
+                    <li>随机号码生成</li>
+                </ul>
+                <div class="app-link">选择号码 →</div>
+            </a>
+        </div>
+
+        <div class="footer">
+            <p>所有应用均使用设备陀螺仪，请在支持陀螺仪的移动设备上使用</p>
+        </div>
+    </div>
+</body>
+</html>
+
