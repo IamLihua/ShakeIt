@@ -282,6 +282,11 @@
             transform: scale(0.98);
         }
 
+        .pause-button {
+            background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+            color: white;
+        }
+
         .confirm-button {
             background: linear-gradient(135deg, #56ab2f 0%, #a8e063 100%);
             color: white;
@@ -520,11 +525,12 @@
         </div>
 
         <div class="button-group">
-            <button class="confirm-button" id="confirmButton">✓ 确认</button>
-            <button class="random-button" id="randomButton">🎲 随机</button>
+            <button class="button confirm-button" id="confirmButton">✓ 确认</button>
+            <button class="button random-button" id="randomButton">🎲 随机</button>
         </div>
         <div class="button-group">
-            <button class="reset-button" id="resetButton">↺ 重置到中点</button>
+            <button class="button pause-button" id="pauseButton">⏸ 暂停滑块</button>
+            <button class="button reset-button" id="resetButton">↺ 重置到中点</button>
         </div>
     </div>
 
@@ -533,6 +539,7 @@
         let currentPosition = 0.5; // 0-1之间的位置
         let velocity = 0;
         let isGyroActive = false;
+        let isPaused = false;
         let lastGamma = 0;
 
         // 号码范围（13开头到19开头的号码）
@@ -556,6 +563,7 @@
         const confirmButton = document.getElementById('confirmButton');
         const randomButton = document.getElementById('randomButton');
         const resetButton = document.getElementById('resetButton');
+        const pauseButton = document.getElementById('pauseButton');
         const permissionPrompt = document.getElementById('permissionPrompt');
         const requestPermissionBtn = document.getElementById('requestPermission');
         const successOverlay = document.getElementById('successOverlay');
@@ -625,6 +633,8 @@
         function startGyroscope() {
             permissionPrompt.style.display = 'none';
             isGyroActive = true;
+            isPaused = false;
+            pauseButton.textContent = '⏸ 暂停滑块';
             
             window.addEventListener('deviceorientation', handleOrientation);
             
@@ -633,7 +643,7 @@
 
         // 处理设备方向事件
         function handleOrientation(event) {
-            if (!isGyroActive) return;
+            if (!isGyroActive || isPaused) return;
 
             let gamma = event.gamma;
 
@@ -654,7 +664,7 @@
 
         // 动画循环
         function animate() {
-            if (isGyroActive) {
+            if (isGyroActive && !isPaused) {
                 // 应用速度到位置
                 currentPosition += velocity;
                 
@@ -711,10 +721,18 @@
             velocity = 0;
             updateDisplay();
             
-            if (permissionPrompt.style.display === 'none') {
+            if (permissionPrompt.style.display === 'none' && !isPaused) {
                 isGyroActive = true;
                 statusEl.textContent = '左右倾斜手机来选择你的号码';
             }
+        }
+
+        // 暂停或继续滑块移动
+        function togglePause() {
+            isPaused = !isPaused;
+            velocity = 0;
+            pauseButton.textContent = isPaused ? '▶ 继续移动' : '⏸ 暂停滑块';
+            statusEl.textContent = isPaused ? '滑块已暂停' : '左右倾斜手机来选择你的号码';
         }
 
         // 关闭成功提示
@@ -728,6 +746,7 @@
         confirmButton.addEventListener('click', confirmPhone);
         randomButton.addEventListener('click', randomPhone);
         resetButton.addEventListener('click', reset);
+        pauseButton.addEventListener('click', togglePause);
         closeSuccessBtn.addEventListener('click', closeSuccess);
 
         // 页面加载时初始化

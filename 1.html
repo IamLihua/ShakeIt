@@ -577,7 +577,7 @@
                 <div class="progress-bar">
                     <div class="progress-fill" id="progressFill"></div>
                 </div>
-                <div class="progress-text" id="progressText">0.0s / 1.0s</div>
+                <div class="progress-text" id="progressText">0.0s / 3.0s</div>
             </div>
 
             <!-- 状态提示 -->
@@ -947,7 +947,7 @@
                             this.progressFill.style.width = `${progress * 100}%`;
                         }
                         if (this.progressText) {
-                            this.progressText.textContent = `${(elapsed / 1000).toFixed(1)}s / 1.0s`;
+                            this.progressText.textContent = `${(elapsed / 1000).toFixed(1)}s / 3.0s`;
                         }
 
                         if (progress >= 1) {
@@ -973,7 +973,7 @@
                     if (this.sliderThumb) this.sliderThumb.classList.remove('in-target');
                     if (this.progressContainer) this.progressContainer.classList.remove('visible');
                     if (this.progressFill) this.progressFill.style.width = '0%';
-                    if (this.progressText) this.progressText.textContent = '0.0s / 1.0s';
+                    if (this.progressText) this.progressText.textContent = '0.0s / 3.0s';
                     
                     if (this.animationFrameId) {
                         cancelAnimationFrame(this.animationFrameId);

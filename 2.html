@@ -229,6 +229,11 @@
             transform: scale(0.98);
         }
 
+        .pause-button {
+            background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+            color: white;
+        }
+
         .confirm-button {
             background: linear-gradient(135deg, #56ab2f 0%, #a8e063 100%);
             color: white;
@@ -412,8 +417,9 @@
         </div>
 
         <div class="button-group">
-            <button class="confirm-button" id="confirmButton">✓ 确认生日</button>
-            <button class="reset-button" id="resetButton">↺ 重置</button>
+            <button class="button confirm-button" id="confirmButton">✓ 确认生日</button>
+            <button class="button pause-button" id="pauseButton">⏸ 暂停滑块</button>
+            <button class="button reset-button" id="resetButton">↺ 重置</button>
         </div>
     </div>
 
@@ -424,6 +430,7 @@
         let velocityX = 0;
         let velocityY = 0;
         let isGyroActive = false;
+        let isPaused = false;
         let lastGamma = 0;
         let lastBeta = 0;
 
@@ -451,6 +458,7 @@
         const axisLabels = document.getElementById('axisLabels');
         const confirmButton = document.getElementById('confirmButton');
         const resetButton = document.getElementById('resetButton');
+        const pauseButton = document.getElementById('pauseButton');
         const permissionPrompt = document.getElementById('permissionPrompt');
         const requestPermissionBtn = document.getElementById('requestPermission');
         const successOverlay = document.getElementById('successOverlay');
@@ -580,6 +588,8 @@
         function startGyroscope() {
             permissionPrompt.style.display = 'none';
             isGyroActive = true;
+            isPaused = false;
+            pauseButton.textContent = '⏸ 暂停滑块';
             
             window.addEventListener('deviceorientation', handleOrientation);
             
@@ -588,7 +598,7 @@
 
         // 处理设备方向事件
         function handleOrientation(event) {
-            if (!isGyroActive) return;
+            if (!isGyroActive || isPaused) return;
 
             let gamma = event.gamma; // 左右倾斜 (-90 到 90)
             let beta = event.beta;   // 前后倾斜 (-180 到 180)
@@ -616,30 +626,32 @@
 
         // 动画循环
         function animate() {
-            // 应用速度到位置
-            currentX += velocityX;
-            currentY += velocityY;
-            
-            // 限制位置在0-1之间，带边界反弹
-            if (currentX < 0) {
-                currentX = 0;
-                velocityX = -velocityX * 0.5;
-            } else if (currentX > 1) {
-                currentX = 1;
-                velocityX = -velocityX * 0.5;
+            if (isGyroActive && !isPaused) {
+                // 应用速度到位置
+                currentX += velocityX;
+                currentY += velocityY;
+
+                // 限制位置在0-1之间，带边界反弹
+                if (currentX < 0) {
+                    currentX = 0;
+                    velocityX = -velocityX * 0.5;
+                } else if (currentX > 1) {
+                    currentX = 1;
+                    velocityX = -velocityX * 0.5;
+                }
+
+                if (currentY < 0) {
+                    currentY = 0;
+                    velocityY = -velocityY * 0.5;
+                } else if (currentY > 1) {
+                    currentY = 1;
+                    velocityY = -velocityY * 0.5;
+                }
+
+                // 应用摩擦力
+                velocityX *= friction;
+                velocityY *= friction;
             }
-            
-            if (currentY < 0) {
-                currentY = 0;
-                velocityY = -velocityY * 0.5;
-            } else if (currentY > 1) {
-                currentY = 1;
-                velocityY = -velocityY * 0.5;
-            }
-            
-            // 应用摩擦力
-            velocityX *= friction;
-            velocityY *= friction;
 
             updateDisplay();
             requestAnimationFrame(animate);
@@ -678,10 +690,19 @@
             velocityY = 0;
             updateDisplay();
             
-            if (permissionPrompt.style.display === 'none') {
+            if (permissionPrompt.style.display === 'none' && !isPaused) {
                 isGyroActive = true;
                 statusEl.textContent = '倾斜手机来选择您的生日';
             }
+        }
+
+        // 暂停或继续滑块移动
+        function togglePause() {
+            isPaused = !isPaused;
+            velocityX = 0;
+            velocityY = 0;
+            pauseButton.textContent = isPaused ? '▶ 继续移动' : '⏸ 暂停滑块';
+            statusEl.textContent = isPaused ? '滑块已暂停' : '倾斜手机来选择您的生日';
         }
 
         // 关闭成功提示
@@ -694,6 +715,7 @@
         requestPermissionBtn.addEventListener('click', requestGyroscopePermission);
         confirmButton.addEventListener('click', confirmBirthday);
         resetButton.addEventListener('click', reset);
+        pauseButton.addEventListener('click', togglePause);
         closeSuccessBtn.addEventListener('click', closeSuccess);
 
         // 页面加载时初始化
