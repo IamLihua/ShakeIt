@@ -14,7 +14,9 @@
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
             background: linear-gradient(135deg, #3a7bd5 0%, #00d2ff 100%);
-            min-height: 100vh;
+            width: 100%;
+            height: 100vh;
+            height: 100dvh;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -31,6 +33,8 @@
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
             width: 100%;
             max-width: 400px;
+            flex-shrink: 0;
+            transform-origin: center center;
         }
 
         h1 {
@@ -359,6 +363,76 @@
             font-weight: bold;
             cursor: pointer;
         }
+
+        @media (max-height: 850px) {
+            body {
+                padding: 12px;
+            }
+
+            .container {
+                padding: 16px 18px;
+                border-radius: 16px;
+            }
+
+            h1 {
+                margin-bottom: 4px;
+                font-size: 22px;
+            }
+
+            .subtitle {
+                margin-bottom: 10px;
+            }
+
+            .date-display {
+                margin-bottom: 10px;
+                padding: 10px;
+            }
+
+            .date-label {
+                margin-bottom: 4px;
+            }
+
+            .date-value {
+                font-size: 26px;
+            }
+
+            .date-detail {
+                margin-top: 3px;
+            }
+
+            .plane-container {
+                width: min(100%, 38vh);
+                margin: 8px auto;
+            }
+
+            .coordinates {
+                margin: 8px 0;
+                padding: 8px;
+            }
+
+            .coordinate-label {
+                margin-bottom: 2px;
+            }
+
+            .coordinate-value {
+                font-size: 16px;
+            }
+
+            .status {
+                margin: 8px 0;
+                padding: 8px;
+            }
+
+            .button-group {
+                gap: 6px;
+                margin-top: 8px;
+            }
+
+            .button {
+                padding: 10px 6px;
+                font-size: 13px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -465,6 +539,7 @@
         const successDate = document.getElementById('successDate');
         const successDetail = document.getElementById('successDetail');
         const closeSuccessBtn = document.getElementById('closeSuccess');
+        const pageContainer = document.querySelector('.container');
 
         // 星期名称
         const weekDays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
@@ -476,6 +551,26 @@
             createAxisLabels();
             updateDisplay();
             animate();
+            requestAnimationFrame(fitPageToViewport);
+        }
+
+        // 在较小屏幕上等比缩放内容，确保整张卡片完整显示
+        function fitPageToViewport() {
+            const bodyStyle = getComputedStyle(document.body);
+            const viewport = window.visualViewport;
+            const viewportWidth = viewport ? viewport.width : window.innerWidth;
+            const viewportHeight = viewport ? viewport.height : window.innerHeight;
+            const horizontalPadding = parseFloat(bodyStyle.paddingLeft) + parseFloat(bodyStyle.paddingRight);
+            const verticalPadding = parseFloat(bodyStyle.paddingTop) + parseFloat(bodyStyle.paddingBottom);
+            const availableWidth = viewportWidth - horizontalPadding;
+            const availableHeight = viewportHeight - verticalPadding;
+            const scale = Math.min(
+                1,
+                availableWidth / pageContainer.offsetWidth,
+                availableHeight / pageContainer.offsetHeight
+            );
+
+            pageContainer.style.transform = `scale(${scale})`;
         }
 
         // 创建网格线
@@ -717,6 +812,11 @@
         resetButton.addEventListener('click', reset);
         pauseButton.addEventListener('click', togglePause);
         closeSuccessBtn.addEventListener('click', closeSuccess);
+        window.addEventListener('resize', fitPageToViewport);
+        window.addEventListener('orientationchange', fitPageToViewport);
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener('resize', fitPageToViewport);
+        }
 
         // 页面加载时初始化
         init();

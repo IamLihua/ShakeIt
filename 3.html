@@ -14,7 +14,9 @@
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
             background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            min-height: 100vh;
+            width: 100%;
+            height: 100vh;
+            height: 100dvh;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -31,6 +33,8 @@
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
             width: 100%;
             max-width: 400px;
+            flex-shrink: 0;
+            transform-origin: center center;
         }
 
         h1 {
@@ -440,6 +444,126 @@
             font-weight: bold;
             color: #4facfe;
         }
+
+        @media (max-height: 900px) {
+            body {
+                padding: 12px;
+            }
+
+            .container {
+                padding: 16px 18px;
+                border-radius: 16px;
+            }
+
+            h1 {
+                margin-bottom: 4px;
+                font-size: 22px;
+            }
+
+            .subtitle {
+                margin-bottom: 10px;
+            }
+
+            .phone-display {
+                margin-bottom: 12px;
+                padding: 10px;
+            }
+
+            .phone-label {
+                margin-bottom: 4px;
+            }
+
+            .phone-number {
+                margin-bottom: 4px;
+                font-size: 24px;
+            }
+
+            .slider-section {
+                margin: 12px 0;
+            }
+
+            .slider-label {
+                margin-bottom: 6px;
+            }
+
+            .slider-container {
+                margin: 15px 0;
+            }
+
+            .slider-track {
+                height: 44px;
+            }
+
+            .slider-thumb {
+                width: 40px;
+                height: 40px;
+            }
+
+            .slider-thumb::before {
+                width: 24px;
+                height: 24px;
+            }
+
+            .slider-thumb::after {
+                font-size: 14px;
+            }
+
+            .progress-indicator {
+                height: 6px;
+                margin-top: 8px;
+            }
+
+            .range-info {
+                margin-top: 8px;
+                padding: 6px;
+            }
+
+            .stats-grid {
+                gap: 8px;
+                margin: 10px 0;
+            }
+
+            .stat-card {
+                padding: 8px;
+            }
+
+            .stat-label {
+                margin-bottom: 3px;
+            }
+
+            .stat-value {
+                font-size: 18px;
+            }
+
+            .instruction {
+                margin: 8px 0;
+                padding: 8px;
+            }
+
+            .instruction-title {
+                margin-bottom: 3px;
+                font-size: 13px;
+            }
+
+            .instruction-text {
+                font-size: 11px;
+                line-height: 1.35;
+            }
+
+            .status {
+                margin: 8px 0;
+                padding: 8px;
+            }
+
+            .button-group {
+                margin-top: 8px;
+            }
+
+            .button {
+                padding: 10px 6px;
+                font-size: 13px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -570,11 +694,32 @@
         const successPhone = document.getElementById('successPhone');
         const successPosition = document.getElementById('successPosition');
         const closeSuccessBtn = document.getElementById('closeSuccess');
+        const pageContainer = document.querySelector('.container');
 
         // 初始化
         function init() {
             updateDisplay();
             animate();
+            requestAnimationFrame(fitPageToViewport);
+        }
+
+        // 在较小屏幕上等比缩放内容，确保整张卡片完整显示
+        function fitPageToViewport() {
+            const bodyStyle = getComputedStyle(document.body);
+            const viewport = window.visualViewport;
+            const viewportWidth = viewport ? viewport.width : window.innerWidth;
+            const viewportHeight = viewport ? viewport.height : window.innerHeight;
+            const horizontalPadding = parseFloat(bodyStyle.paddingLeft) + parseFloat(bodyStyle.paddingRight);
+            const verticalPadding = parseFloat(bodyStyle.paddingTop) + parseFloat(bodyStyle.paddingBottom);
+            const availableWidth = viewportWidth - horizontalPadding;
+            const availableHeight = viewportHeight - verticalPadding;
+            const scale = Math.min(
+                1,
+                availableWidth / pageContainer.offsetWidth,
+                availableHeight / pageContainer.offsetHeight
+            );
+
+            pageContainer.style.transform = `scale(${scale})`;
         }
 
         // 根据位置计算手机号
@@ -748,6 +893,11 @@
         resetButton.addEventListener('click', reset);
         pauseButton.addEventListener('click', togglePause);
         closeSuccessBtn.addEventListener('click', closeSuccess);
+        window.addEventListener('resize', fitPageToViewport);
+        window.addEventListener('orientationchange', fitPageToViewport);
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener('resize', fitPageToViewport);
+        }
 
         // 页面加载时初始化
         init();
